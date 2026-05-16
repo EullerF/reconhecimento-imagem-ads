@@ -1,586 +1,392 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Teachable Machine · Visão Computacional</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskFlow — Gerencie suas tarefas</title>
+  <meta name="description" content="Aplicação de gerenciamento de tarefas pessoais com autenticação segura e painel intuitivo." />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="TaskFlow — Gerencie suas tarefas" />
+  <meta property="og:description" content="Organize suas tarefas pessoais e profissionais com autenticação segura e painel intuitivo." />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="pt_BR" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="TaskFlow — Gerencie suas tarefas" />
+  <meta name="twitter:description" content="Organize suas tarefas pessoais e profissionais." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            surface: {
+              900: '#0f172a',
+              800: '#1e293b',
+              700: '#334155',
+            },
+            accent: {
+              DEFAULT: '#38bdf8',
+              hover: '#0ea5e9',
+            },
+          },
+          backdropBlur: {
+            xs: '2px',
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.4s ease-out',
+            'slide-up': 'slideUp 0.35s ease-out',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { opacity: '0', transform: 'translateY(18px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+          },
+        },
+      },
+    }
+  </script>
+
   <style>
-    :root {
-      --bg:       #0a0a0f;
-      --surface:  #13131a;
-      --border:   #1e1e2e;
-      --accent:   #00e5ff;
-      --accent2:  #7c3aed;
-      --text:     #e2e8f0;
-      --muted:    #64748b;
-      --success:  #10b981;
-      --warn:     #f59e0b;
-      --danger:   #ef4444;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Syne', sans-serif;
-      min-height: 100vh;
-      overflow-x: hidden;
+      background-color: #0f172a;
+      font-family: 'Inter', system-ui, sans-serif;
     }
 
-    /* ── noise grain overlay ── */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 9999;
-      opacity: .35;
+    /* Glassmorphism base */
+    .glass {
+      background: rgba(30, 41, 59, 0.55);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(148, 163, 184, 0.13);
     }
 
-    /* ── hero glow blobs ── */
-    .glow-blob {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(120px);
-      pointer-events: none;
-      z-index: 0;
-    }
-    .glow-blob--1 {
-      width: 500px; height: 500px;
-      background: rgba(0,229,255,.07);
-      top: -120px; left: -120px;
-    }
-    .glow-blob--2 {
-      width: 400px; height: 400px;
-      background: rgba(124,58,237,.08);
-      bottom: -80px; right: -80px;
+    .glass-card {
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(56, 189, 248, 0.12);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255,255,255,0.05);
     }
 
-    /* ── layout ── */
-    .wrapper {
-      position: relative;
-      z-index: 1;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+    /* Input styling */
+    .form-input {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      color: #e2e8f0;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: rgba(56, 189, 248, 0.6);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+    }
+    .form-input::placeholder { color: #475569; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+    /* Screen transitions */
+    .screen { display: none; }
+    .screen.active { display: block; animation: fadeIn 0.35s ease-out; }
+
+    /* Task card done state */
+    .task-done .task-title { text-decoration: line-through; color: #475569; }
+    .task-done { opacity: 0.55; }
+
+    /* Badge colors */
+    .badge-work    { background: rgba(59, 130, 246, 0.18); color: #93c5fd; border: 1px solid rgba(59,130,246,0.3); }
+    .badge-personal{ background: rgba(20, 184, 166, 0.18); color: #5eead4; border: 1px solid rgba(20,184,166,0.3); }
+    .badge-studies { background: rgba(34, 197, 94, 0.18); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
+
+    /* Glow button */
+    .btn-primary {
+      background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+      color: #0f172a;
+      font-weight: 600;
+      transition: box-shadow 0.2s, transform 0.15s;
+    }
+    .btn-primary:hover {
+      box-shadow: 0 0 22px rgba(56, 189, 248, 0.45);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: translateY(0); }
+
+    /* Reduced motion accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
     }
 
-    /* ── header ── */
-    header {
-      padding: 2rem 1.5rem 1rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .brand-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: .5rem;
-      background: rgba(0,229,255,.06);
-      border: 1px solid rgba(0,229,255,.18);
-      border-radius: 999px;
-      padding: .25rem .85rem;
-      font-family: 'DM Mono', monospace;
-      font-size: .7rem;
-      color: var(--accent);
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      margin-bottom: 1rem;
-    }
-    .brand-badge span { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
-
-    h1 {
-      font-size: clamp(1.6rem, 5vw, 2.8rem);
-      font-weight: 800;
-      line-height: 1.1;
-      background: linear-gradient(135deg, #fff 30%, var(--accent));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .subtitle {
-      color: var(--muted);
-      font-size: .9rem;
-      margin-top: .4rem;
-      font-family: 'DM Mono', monospace;
-    }
-
-    /* ── main content ── */
-    main {
-      flex: 1;
-      padding: 2rem 1rem 3rem;
-    }
-
-    /* ── camera card ── */
-    .camera-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 1.25rem;
-      overflow: hidden;
-      position: relative;
-    }
-    .camera-card::before {
-      content: '';
+    /* Ambient blobs: use transform instead of top/left for GPU compositing */
+    .blob {
       position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(0,229,255,.03) 0%, transparent 60%);
+      border-radius: 50%;
       pointer-events: none;
-    }
-
-    .cam-header {
-      display: flex;
-      align-items: center;
-      gap: .6rem;
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .cam-dot { width: 10px; height: 10px; border-radius: 50%; }
-    .cam-dot--red   { background: #ef4444; }
-    .cam-dot--yellow{ background: #f59e0b; }
-    .cam-dot--green { background: #10b981; }
-    .cam-title {
-      margin-left: auto;
-      font-family: 'DM Mono', monospace;
-      font-size: .72rem;
-      color: var(--muted);
-      letter-spacing: .06em;
-    }
-
-    #webcam-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 220px;
-      background: #0d0d14;
-      position: relative;
-    }
-    #webcam-container canvas {
-      border-radius: 0;
-      max-width: 100%;
-      display: block;
-    }
-
-    /* placeholder state */
-    .cam-placeholder {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1rem;
-      height: 220px;
-      color: var(--muted);
-    }
-    .cam-icon {
-      width: 56px; height: 56px;
-      border: 2px dashed var(--border);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.4rem;
-    }
-    .cam-placeholder p { font-size: .82rem; font-family: 'DM Mono', monospace; }
-
-    /* ── start button ── */
-    .btn-start {
-      display: inline-flex;
-      align-items: center;
-      gap: .6rem;
-      background: linear-gradient(135deg, var(--accent2), #4f46e5);
-      border: none;
-      border-radius: .75rem;
-      color: #fff;
-      font-family: 'Syne', sans-serif;
-      font-size: 1rem;
-      font-weight: 700;
-      padding: .85rem 2rem;
-      cursor: pointer;
-      transition: transform .15s, box-shadow .15s, opacity .15s;
-      box-shadow: 0 0 0 0 rgba(124,58,237,0);
-      width: 100%;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .btn-start::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,.12) 0%, transparent 60%);
-    }
-    .btn-start:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 32px rgba(124,58,237,.45);
-    }
-    .btn-start:active:not(:disabled) { transform: translateY(0); }
-    .btn-start:disabled { opacity: .5; cursor: not-allowed; }
-
-    .btn-start svg { width: 20px; height: 20px; flex-shrink: 0; }
-
-    /* permission hint */
-    .permission-hint {
-      display: flex;
-      align-items: center;
-      gap: .5rem;
-      font-size: .75rem;
-      color: var(--muted);
-      font-family: 'DM Mono', monospace;
-      justify-content: center;
-    }
-    .lock-icon { font-size: .9rem; }
-
-    /* ── predictions card ── */
-    .pred-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 1.25rem;
-      overflow: hidden;
-    }
-    .pred-header {
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: .6rem;
-    }
-    .pred-header-title {
-      font-weight: 700;
-      font-size: .88rem;
-      letter-spacing: .04em;
-      text-transform: uppercase;
-    }
-    .live-badge {
-      margin-left: auto;
-      display: none;
-      align-items: center;
-      gap: .4rem;
-      font-family: 'DM Mono', monospace;
-      font-size: .65rem;
-      color: var(--success);
-      letter-spacing: .06em;
-    }
-    .live-badge.show { display: flex; }
-    .live-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--success);
-      animation: pulse 1.2s infinite;
-    }
-
-    .pred-body { padding: 1.25rem; }
-
-    /* ── each prediction row ── */
-    .pred-row { margin-bottom: 1.25rem; }
-    .pred-row:last-child { margin-bottom: 0; }
-
-    .pred-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: .45rem;
-    }
-    .pred-name {
-      font-size: .82rem;
-      font-weight: 700;
-      letter-spacing: .02em;
-      font-family: 'DM Mono', monospace;
-      color: var(--text);
-    }
-    .pred-pct {
-      font-family: 'DM Mono', monospace;
-      font-size: .8rem;
-      color: var(--accent);
-      font-weight: 500;
-    }
-
-    .progress-track {
-      height: 8px;
-      background: rgba(255,255,255,.06);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      border-radius: 999px;
-      width: 0%;
-      transition: width .35s cubic-bezier(.4,0,.2,1), background .35s;
-    }
-
-    /* colour tiers */
-    .fill-low    { background: linear-gradient(90deg, #334155, #475569); }
-    .fill-mid    { background: linear-gradient(90deg, var(--accent2), #6366f1); }
-    .fill-high   { background: linear-gradient(90deg, var(--accent), var(--success)); }
-
-    /* empty state */
-    .pred-empty {
-      text-align: center;
-      padding: 2rem 1rem;
-      color: var(--muted);
-      font-family: 'DM Mono', monospace;
-      font-size: .8rem;
-    }
-
-    /* ── status / toast ── */
-    #status-toast {
-      position: fixed;
-      bottom: 1.5rem;
-      left: 50%;
-      transform: translateX(-50%) translateY(120%);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: .75rem;
-      padding: .65rem 1.25rem;
-      font-family: 'DM Mono', monospace;
-      font-size: .78rem;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      gap: .6rem;
-      transition: transform .35s cubic-bezier(.4,0,.2,1);
-      z-index: 100;
-      white-space: nowrap;
-      box-shadow: 0 8px 32px rgba(0,0,0,.5);
-    }
-    #status-toast.show { transform: translateX(-50%) translateY(0); }
-    #status-toast.error { border-color: var(--danger); color: var(--danger); }
-    #status-toast.success { border-color: var(--success); color: var(--success); }
-
-    /* ── footer ── */
-    footer {
-      text-align: center;
-      padding: 1rem;
-      font-family: 'DM Mono', monospace;
-      font-size: .68rem;
-      color: var(--muted);
-      border-top: 1px solid var(--border);
-    }
-
-    /* ── spinner ── */
-    .spinner-ring {
-      display: inline-block;
-      width: 18px; height: 18px;
-      border: 2px solid rgba(255,255,255,.2);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── responsive ── */
-    @media (min-width: 768px) {
-      main { padding: 2.5rem 2rem 4rem; }
-      #webcam-container { min-height: 280px; }
     }
   </style>
 </head>
-<body>
+<body class="min-h-screen text-slate-100 antialiased">
 
-<div class="glow-blob glow-blob--1"></div>
-<div class="glow-blob glow-blob--2"></div>
+  <!-- Ambient background blobs (transform-based, GPU friendly) -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+    <div class="blob w-96 h-96 opacity-10"
+         style="background: radial-gradient(circle, #0ea5e9 0%, transparent 70%); transform: translate(-10rem, -10rem);"></div>
+    <div class="blob w-80 h-80 opacity-10"
+         style="background: radial-gradient(circle, #6366f1 0%, transparent 70%); transform: translate(calc(100vw - 12rem), 40vh);"></div>
+    <div class="blob w-72 h-72 opacity-10"
+         style="background: radial-gradient(circle, #22d3ee 0%, transparent 70%); transform: translate(30vw, calc(100vh - 9rem));"></div>
+  </div>
 
-<div class="wrapper">
+  <!-- ───────────── LOGIN SCREEN ───────────── -->
+  <section id="screen-login" class="screen active" role="main">
+    <div class="min-h-screen flex items-center justify-center p-4">
+      <div class="glass-card rounded-2xl p-8 w-full max-w-md animate-slide-up">
 
-  <!-- HEADER -->
-  <header>
-    <div class="container-lg px-0">
-      <div class="brand-badge"><span></span> Teachable Machine</div>
-      <h1>Visão<br>Computacional</h1>
-      <p class="subtitle">// modelo de classificação de imagem em tempo real</p>
-    </div>
-  </header>
-
-  <!-- MAIN -->
-  <main>
-    <div class="container-lg px-0">
-      <div class="row g-3 g-md-4 align-items-start">
-
-        <!-- CAMERA COLUMN -->
-        <div class="col-12 col-md-6">
-
-          <div class="camera-card mb-3">
-            <div class="cam-header">
-              <div class="cam-dot cam-dot--red"></div>
-              <div class="cam-dot cam-dot--yellow"></div>
-              <div class="cam-dot cam-dot--green"></div>
-              <span class="cam-title">camera_feed.live</span>
-            </div>
-            <div id="webcam-container">
-              <div class="cam-placeholder" id="cam-placeholder">
-                <div class="cam-icon">📷</div>
-                <p>aguardando inicialização…</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- START BUTTON -->
-          <button class="btn-start mb-2" id="btn-start" onclick="init()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+        <!-- Logo -->
+        <div class="text-center mb-8">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-4"
+               style="background: linear-gradient(135deg, #0ea5e9, #38bdf8);">
+            <svg class="w-6 h-6 text-slate-900" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            <span id="btn-label">Ativar Câmera</span>
+          </div>
+          <h1 class="font-display text-2xl font-bold text-white">TaskFlow</h1>
+          <p class="text-slate-400 text-sm mt-1">Bem-vindo de volta</p>
+        </div>
+
+        <!-- Form -->
+        <form id="form-login" novalidate>
+          <div class="space-y-4">
+
+            <div>
+              <label for="login-email" class="block text-sm font-medium text-slate-300 mb-1.5">E-mail</label>
+              <input id="login-email" type="email" placeholder="seu@email.com"
+                     class="form-input w-full px-4 py-3 rounded-xl text-sm" />
+              <p id="login-email-err" class="text-red-400 text-xs mt-1.5 hidden"></p>
+            </div>
+
+            <div>
+              <label for="login-password" class="block text-sm font-medium text-slate-300 mb-1.5">Senha</label>
+              <input id="login-password" type="password" placeholder="••••••••"
+                     class="form-input w-full px-4 py-3 rounded-xl text-sm" />
+              <p id="login-password-err" class="text-red-400 text-xs mt-1.5 hidden"></p>
+            </div>
+
+            <p id="login-global-err" class="text-red-400 text-sm text-center hidden"></p>
+
+            <button id="btn-login" type="submit"
+                    class="btn-primary w-full py-3 rounded-xl text-sm mt-2">
+              Entrar
+            </button>
+          </div>
+        </form>
+
+        <p class="text-center text-slate-400 text-sm mt-6">
+          Não tem conta?
+          <button id="go-register" class="text-accent hover:text-accent-hover font-medium transition-colors">
+            Cadastre-se
           </button>
-
-          <div class="permission-hint">
-            <span class="lock-icon">🔒</span>
-            O acesso à câmera ocorre somente no seu dispositivo
-          </div>
-
-        </div>
-
-        <!-- PREDICTIONS COLUMN -->
-        <div class="col-12 col-md-6">
-          <div class="pred-card">
-            <div class="pred-header">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-              </svg>
-              <span class="pred-header-title">Predições</span>
-              <span class="live-badge" id="live-badge"><span class="live-dot"></span> LIVE</span>
-            </div>
-            <div class="pred-body">
-              <div class="pred-empty" id="pred-empty">
-                Inicie a câmera para ver as predições em tempo real.
-              </div>
-              <div id="label-container"></div>
-            </div>
-          </div>
-        </div>
-
+        </p>
       </div>
     </div>
-  </main>
+  </section>
 
-  <!-- FOOTER -->
-  <footer>
-    Powered by TensorFlow.js · Teachable Machine · Google Creative Lab
-  </footer>
+  <!-- ───────────── REGISTER SCREEN ───────────── -->
+  <section id="screen-register" class="screen" role="main">
+    <div class="min-h-screen flex items-center justify-center p-4">
+      <div class="glass-card rounded-2xl p-8 w-full max-w-md animate-slide-up">
 
-</div>
-
-<!-- STATUS TOAST -->
-<div id="status-toast">
-  <span id="toast-icon">⏳</span>
-  <span id="toast-msg">Carregando modelo…</span>
-</div>
-
-<!-- SCRIPTS -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
-<script>
-  const MODEL_URL = "https://teachablemachine.withgoogle.com/models/ll0yi05cL_/";
-
-  let model, webcam, maxPredictions;
-  let running = false;
-
-  // ── colour tier based on probability ──
-  function getFillClass(prob) {
-    if (prob >= 0.65) return 'fill-high';
-    if (prob >= 0.30) return 'fill-mid';
-    return 'fill-low';
-  }
-
-  // ── toast helpers ──
-  function showToast(msg, type = '', icon = '⏳', duration = 0) {
-    const t = document.getElementById('status-toast');
-    document.getElementById('toast-msg').textContent = msg;
-    document.getElementById('toast-icon').textContent = icon;
-    t.className = 'show ' + type;
-    if (duration > 0) setTimeout(() => { t.className = ''; }, duration);
-  }
-  function hideToast() { document.getElementById('status-toast').className = ''; }
-
-  // ── init ──
-  async function init() {
-    if (running) return;
-
-    const btn   = document.getElementById('btn-start');
-    const label = document.getElementById('btn-label');
-
-    btn.disabled = true;
-    label.innerHTML = '<span class="spinner-ring"></span>&nbsp; Carregando…';
-    showToast('Carregando modelo de IA…', '', '🧠');
-
-    try {
-      model = await tmImage.load(MODEL_URL + 'model.json', MODEL_URL + 'metadata.json');
-      maxPredictions = model.getTotalClasses();
-
-      showToast('Solicitando acesso à câmera…', '', '📷');
-
-      const flip = true;
-      webcam = new tmImage.Webcam(300, 300, flip);
-      await webcam.setup();
-      await webcam.play();
-
-      // swap placeholder for canvas
-      const placeholder = document.getElementById('cam-placeholder');
-      if (placeholder) placeholder.remove();
-      document.getElementById('webcam-container').appendChild(webcam.canvas);
-
-      // build label rows
-      const lc = document.getElementById('label-container');
-      document.getElementById('pred-empty').style.display = 'none';
-
-      for (let i = 0; i < maxPredictions; i++) {
-        const row = document.createElement('div');
-        row.className = 'pred-row';
-        row.innerHTML = `
-          <div class="pred-meta">
-            <span class="pred-name" id="name-${i}">Classe ${i + 1}</span>
-            <span class="pred-pct" id="pct-${i}">0%</span>
+        <div class="text-center mb-8">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-4"
+               style="background: linear-gradient(135deg, #0ea5e9, #38bdf8);">
+            <svg class="w-6 h-6 text-slate-900" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3M13.5 4.5L12 3m0 0L10.5 4.5M12 3v4.5m0 9L13.5 18m-1.5 1.5L10.5 18M12 21v-4.5"/>
+            </svg>
           </div>
-          <div class="progress-track">
-            <div class="progress-fill fill-low" id="fill-${i}"></div>
-          </div>`;
-        lc.appendChild(row);
-      }
+          <!-- Only one h1 per document: register uses h2 styled identically -->
+          <h2 class="font-display text-2xl font-bold text-white">Criar conta</h2>
+          <p class="text-slate-400 text-sm mt-1">Comece a organizar suas tarefas</p>
+        </div>
 
-      // live badge
-      document.getElementById('live-badge').classList.add('show');
+        <form id="form-register" novalidate>
+          <div class="space-y-4">
 
-      // update button
-      btn.disabled = false;
-      btn.style.background = 'linear-gradient(135deg, #064e3b, #065f46)';
-      label.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
-          <rect x="1" y="5" width="15" height="14" rx="2"/><line x1="23" y1="9" x2="23" y2="15"/>
-        </svg>
-        Câmera Ativa`;
-      btn.onclick = null;
+            <div>
+              <label for="reg-name" class="block text-sm font-medium text-slate-300 mb-1.5">Nome completo</label>
+              <input id="reg-name" type="text" placeholder="Seu nome"
+                     class="form-input w-full px-4 py-3 rounded-xl text-sm" />
+              <p id="reg-name-err" class="text-red-400 text-xs mt-1.5 hidden"></p>
+            </div>
 
-      running = true;
-      showToast('Modelo carregado com sucesso!', 'success', '✅', 2500);
+            <div>
+              <label for="reg-email" class="block text-sm font-medium text-slate-300 mb-1.5">E-mail</label>
+              <input id="reg-email" type="email" placeholder="seu@email.com"
+                     class="form-input w-full px-4 py-3 rounded-xl text-sm" />
+              <p id="reg-email-err" class="text-red-400 text-xs mt-1.5 hidden"></p>
+            </div>
 
-      window.requestAnimationFrame(loop);
+            <div>
+              <label for="reg-password" class="block text-sm font-medium text-slate-300 mb-1.5">Senha</label>
+              <input id="reg-password" type="password" placeholder="Mínimo 6 caracteres"
+                     class="form-input w-full px-4 py-3 rounded-xl text-sm" />
+              <p id="reg-password-err" class="text-red-400 text-xs mt-1.5 hidden"></p>
+            </div>
 
-    } catch (err) {
-      console.error(err);
-      btn.disabled = false;
-      label.textContent = 'Tentar novamente';
-      btn.style.background = '';
-      showToast('Erro: ' + (err.message || 'verifique as permissões de câmera'), 'error', '❌', 5000);
-    }
-  }
+            <p id="reg-global-err" class="text-red-400 text-sm text-center hidden"></p>
 
-  async function loop() {
-    webcam.update();
-    await predict();
-    window.requestAnimationFrame(loop);
-  }
+            <button id="btn-register" type="submit"
+                    class="btn-primary w-full py-3 rounded-xl text-sm mt-2">
+              Criar conta
+            </button>
+          </div>
+        </form>
 
-  async function predict() {
-    const predictions = await model.predict(webcam.canvas);
-    for (let i = 0; i < maxPredictions; i++) {
-      const { className, probability } = predictions[i];
-      const pct = Math.round(probability * 100);
+        <p class="text-center text-slate-400 text-sm mt-6">
+          Já tem conta?
+          <button id="go-login" class="text-accent hover:text-accent-hover font-medium transition-colors">
+            Fazer login
+          </button>
+        </p>
+      </div>
+    </div>
+  </section>
 
-      document.getElementById(`name-${i}`).textContent = className;
-      document.getElementById(`pct-${i}`).textContent  = pct + '%';
+  <!-- ───────────── DASHBOARD SCREEN ───────────── -->
+  <section id="screen-dashboard" class="screen" role="main">
+    <div class="min-h-screen flex flex-col">
 
-      const fill = document.getElementById(`fill-${i}`);
-      fill.style.width = pct + '%';
-      fill.className = 'progress-fill ' + getFillClass(probability);
-    }
-  }
-</script>
+      <!-- Header -->
+      <header class="glass sticky top-0 z-10">
+        <div class="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                 style="background: linear-gradient(135deg, #0ea5e9, #38bdf8);">
+              <svg class="w-4 h-4 text-slate-900" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-xs text-slate-400 leading-none">Bem-vindo</p>
+              <p id="header-username" class="font-semibold text-white text-sm leading-snug"></p>
+            </div>
+          </div>
+
+          <button id="btn-logout"
+                  class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm text-slate-300
+                         hover:text-red-400 hover:bg-red-400/10 transition-all duration-200 border border-transparent
+                         hover:border-red-400/20">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+            </svg>
+            Sair
+          </button>
+        </div>
+      </header>
+
+      <!-- Main content -->
+      <main class="flex-1 max-w-4xl w-full mx-auto px-6 py-8 space-y-8">
+
+        <!-- Create task form -->
+        <div class="glass-card rounded-2xl p-6 animate-slide-up">
+          <h2 class="font-display text-lg font-bold text-white mb-5 flex items-center gap-2">
+            <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+            </svg>
+            Nova Tarefa
+          </h2>
+
+          <form id="form-task" novalidate>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div class="md:col-span-1">
+                <label for="task-title" class="block text-sm font-medium text-slate-300 mb-1.5">Título <span class="text-red-400">*</span></label>
+                <input id="task-title" type="text" placeholder="O que precisa ser feito?"
+                       class="form-input w-full px-4 py-3 rounded-xl text-sm" />
+                <p id="task-title-err" class="text-red-400 text-xs mt-1.5 hidden"></p>
+              </div>
+
+              <div class="md:col-span-1">
+                <label for="task-type" class="block text-sm font-medium text-slate-300 mb-1.5">Tipo</label>
+                <select id="task-type"
+                        class="form-input w-full px-4 py-3 rounded-xl text-sm appearance-none cursor-pointer">
+                  <option value="Trabalho">💼 Trabalho</option>
+                  <option value="Pessoal">🙂 Pessoal</option>
+                  <option value="Estudos">📚 Estudos</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="mb-5">
+              <label for="task-desc" class="block text-sm font-medium text-slate-300 mb-1.5">Descrição <span class="text-slate-500 font-normal">(opcional)</span></label>
+              <textarea id="task-desc" rows="3" placeholder="Detalhes adicionais..."
+                        class="form-input w-full px-4 py-3 rounded-xl text-sm resize-none"></textarea>
+            </div>
+
+            <button id="btn-add-task" type="submit"
+                    class="btn-primary px-6 py-3 rounded-xl text-sm flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+              </svg>
+              Adicionar Tarefa
+            </button>
+          </form>
+        </div>
+
+        <!-- Task list -->
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="font-display text-lg font-bold text-white flex items-center gap-2">
+              <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
+              </svg>
+              Minhas Tarefas
+            </h2>
+            <span id="task-counter" class="text-xs text-slate-400 glass px-3 py-1 rounded-full"></span>
+          </div>
+
+          <div id="task-list" class="space-y-3">
+            <!-- Tasks rendered by JS -->
+          </div>
+
+          <!-- Empty state -->
+          <div id="task-empty" class="hidden glass-card rounded-2xl p-12 text-center animate-fade-in">
+            <div class="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+                 style="background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.2);">
+              <svg class="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+              </svg>
+            </div>
+            <p class="text-slate-400 text-sm">Nenhuma tarefa cadastrada ainda.</p>
+            <p class="text-slate-600 text-xs mt-1">Adicione sua primeira tarefa acima.</p>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </section>
+
+  <script src="app.js"></script>
 </body>
 </html>
